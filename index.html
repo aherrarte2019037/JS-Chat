@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat simple</title>
+  <style>
+    .light {
+      background-color: #fff;
+      color: #000;
+    }
+    .dark {
+      background-color: #333;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="light">
+  <script type="application/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elementos de la interfaz
+      const chatContainer = document.createElement('div');
+      const messagesContainer = document.createElement('div');
+      const inputContainer = document.createElement('div');
+      const messageInput = document.createElement('input');
+      const sendButton = document.createElement('button');
+      const themeToggle = document.createElement('button');
+
+      // Configuración inicial de elementos
+      setupElements();
+
+      // Funcionalidades
+      function setupElements() {
+        // Contenedor principal
+        chatContainer.style.display = 'flex';
+        chatContainer.style.flexDirection = 'column';
+        chatContainer.style.height = '100vh';
+        document.body.appendChild(chatContainer);
+        document.body.style.margin = '0';
+        document.body.style.transition = 'background-color 0.5s, color 0.5s';
+
+        // Mensajes
+        messagesContainer.style.flex = '1';
+        messagesContainer.style.overflowY = 'auto';
+        chatContainer.appendChild(messagesContainer);
+
+        // Input
+        inputContainer.style.display = 'flex';
+        chatContainer.appendChild(inputContainer);
+
+        messageInput.setAttribute('type', 'text');
+        messageInput.setAttribute('maxlength', '140');
+        messageInput.style.flex = '1';
+        inputContainer.appendChild(messageInput);
+
+        // Botón de enviar
+        sendButton.textContent = 'Enviar';
+        inputContainer.appendChild(sendButton);
+
+        // Botón de cambio de tema
+        themeToggle.textContent = 'Cambiar tema';
+        chatContainer.insertBefore(themeToggle, messagesContainer);
+
+        // Eventos
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', event => {
+          if (event.key === 'Enter') {
+            sendMessage();
+            event.preventDefault();
+          }
+        });
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Aplicar tema guardado
+        applyStoredTheme();
+      }
+
+      function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+          const messageElement = document.createElement('div');
+          messageElement.textContent = message;
+          messagesContainer.appendChild(messageElement);
+          messageInput.value = '';
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }
+
+      function toggleTheme() {
+        const currentTheme = document.body.className;
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.body.className = newTheme;
+        localStorage.setItem('theme', newTheme);
+      }
+
+      function applyStoredTheme() {
+        const storedTheme = localStorage.getItem('theme') || 'light';
+        document.body.className = storedTheme;
+      }
+    });
+  </script>
+</body>
+</html>
