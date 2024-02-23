@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Chat simple</title>
   <style>
@@ -7,16 +8,17 @@
       background-color: #fff;
       color: #000;
     }
+
     .dark {
       background-color: #333;
       color: #fff;
     }
   </style>
 </head>
+
 <body class="light">
   <script type="application/javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-      // Elementos de la interfaz
+    document.addEventListener('DOMContentLoaded', function () {
       const chatContainer = document.createElement('div');
       const messagesContainer = document.createElement('div');
       const inputContainer = document.createElement('div');
@@ -24,12 +26,9 @@
       const sendButton = document.createElement('button');
       const themeToggle = document.createElement('button');
 
-      // Configuración inicial de elementos
       setupElements();
 
-      // Funcionalidades
       function setupElements() {
-        // Contenedor principal
         chatContainer.style.display = 'flex';
         chatContainer.style.flexDirection = 'column';
         chatContainer.style.height = '100vh';
@@ -37,12 +36,10 @@
         document.body.style.margin = '0';
         document.body.style.transition = 'background-color 0.5s, color 0.5s';
 
-        // Mensajes
         messagesContainer.style.flex = '1';
         messagesContainer.style.overflowY = 'auto';
         chatContainer.appendChild(messagesContainer);
 
-        // Input
         inputContainer.style.display = 'flex';
         chatContainer.appendChild(inputContainer);
 
@@ -51,15 +48,51 @@
         messageInput.style.flex = '1';
         inputContainer.appendChild(messageInput);
 
-        // Botón de enviar
         sendButton.textContent = 'Enviar';
         inputContainer.appendChild(sendButton);
 
-        // Botón de cambio de tema
         themeToggle.textContent = 'Cambiar tema';
         chatContainer.insertBefore(themeToggle, messagesContainer);
 
-        // Eventos
+        chatContainer.style.display = 'flex';
+        chatContainer.style.flexDirection = 'column';
+        chatContainer.style.height = '100vh';
+        chatContainer.style.maxWidth = '600px';
+        chatContainer.style.margin = '0 auto';
+        chatContainer.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
+        chatContainer.style.backgroundColor = '#ffffff';
+        chatContainer.style.borderRadius = '8px';
+        chatContainer.style.overflow = 'hidden';
+
+        messagesContainer.style.flex = '1';
+        messagesContainer.style.overflowY = 'auto';
+        messagesContainer.style.padding = '20px';
+        messagesContainer.style.display = 'flex';
+        messagesContainer.style.flexDirection = 'column';
+        messagesContainer.style.gap = '10px';
+
+        messageInput.style.flex = '1';
+        messageInput.style.padding = '10px';
+        messageInput.style.borderRadius = '18px';
+        messageInput.style.border = '1px solid #cccccc';
+        messageInput.style.marginRight = '10px';
+
+        sendButton.style.padding = '10px 20px';
+        sendButton.style.borderRadius = '18px';
+        sendButton.style.border = 'none';
+        sendButton.style.backgroundColor = '#007bff';
+        sendButton.style.color = 'white';
+        sendButton.style.cursor = 'pointer';
+
+        themeToggle.style.padding = '10px';
+        themeToggle.style.borderRadius = '18px';
+        themeToggle.style.border = '1px solid #007bff';
+        themeToggle.style.backgroundColor = 'transparent';
+        themeToggle.style.color = '#007bff';
+        themeToggle.style.cursor = 'pointer';
+        themeToggle.style.alignSelf = 'flex-start';
+        themeToggle.style.margin = '10px';
+
         sendButton.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', event => {
           if (event.key === 'Enter') {
@@ -69,8 +102,10 @@
         });
         themeToggle.addEventListener('click', toggleTheme);
 
-        // Aplicar tema guardado
         applyStoredTheme();
+        loadMessages();
+
+        setInterval(loadMessages, 5000);
       }
 
       function sendMessage() {
@@ -79,8 +114,34 @@
           const messageElement = document.createElement('div');
           messageElement.textContent = message;
           messagesContainer.appendChild(messageElement);
-          messageInput.value = '';
           messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+          messageInput.value = '';
+
+          const postBody = {
+            username: "Angel Herrarte",
+            message: message
+          };
+
+          fetch('http://uwu-guate.site:3000/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postBody)
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('Message sent:', data);
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+            });
         }
       }
 
@@ -95,7 +156,100 @@
         const storedTheme = localStorage.getItem('theme') || 'light';
         document.body.className = storedTheme;
       }
+
+      function loadMessages() {
+        fetch('http://uwu-guate.site:3000/messages')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            displayMessages(data.reverse());
+            if (messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight) {
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+          })
+          .catch(error => console.error('There was a problem with your fetch operation:', error));
+      }
+
+      function displayMessages(messages) {
+        messages.forEach(msg => {
+          const messageElement = document.createElement('div');
+          const authorName = document.createElement('span');
+          const messageDate = document.createElement('span');
+          const messageContent = document.createElement('div');
+
+          messageElement.style.padding = '10px 20px';
+          messageElement.style.margin = '5px 0';
+          messageElement.style.borderRadius = '18px';
+          messageElement.style.maxWidth = '80%';
+          messageElement.style.wordWrap = 'break-word';
+          messageElement.style.display = 'flex';
+          messageElement.style.flexDirection = 'column';
+
+          const imageUrl = detectImageUrl(msg[2]);
+          let messageText = document.createElement('span');
+          messageText.textContent = msg[2];
+
+          if (imageUrl) {
+            const imageElement = document.createElement('img');
+            imageElement.src = imageUrl;
+            imageElement.style.maxWidth = '100%';
+            imageElement.style.borderRadius = '8px';
+            messageContent.appendChild(imageElement);
+
+            messageText.textContent = messageText.textContent.replace(imageUrl, '').trim();
+          }
+
+          if (messageText.textContent) {
+            messageContent.appendChild(messageText);
+          }
+
+          authorName.textContent = msg[1];
+          authorName.style.display = 'block';
+          authorName.style.fontSize = '0.8em';
+          authorName.style.marginTop = '5px';
+          authorName.style.opacity = '0.6';
+
+          messageDate.textContent = new Date(msg[3]).toLocaleString();
+          messageDate.style.display = 'block';
+          messageDate.style.fontSize = '0.7em';
+          messageDate.style.marginTop = '5px';
+          messageDate.style.opacity = '0.5';
+          messageDate.style.textAlign = 'right';
+
+          if (msg[1] === 'Angel Herrarte') {
+            messageElement.style.backgroundColor = '#007bff';
+            messageElement.style.color = 'white';
+            messageElement.style.alignSelf = 'flex-end';
+            authorName.style.textAlign = 'right';
+            messageDate.style.color = '#b0c4de';
+          } else {
+            messageElement.style.backgroundColor = '#f0f0f0';
+            messageElement.style.color = 'black';
+            messageElement.style.alignSelf = 'flex-start';
+            authorName.style.textAlign = 'left';
+            messageDate.style.color = '#696969';
+          }
+
+          messageElement.appendChild(authorName);
+          messageElement.appendChild(messageContent);
+          messageElement.appendChild(messageDate);
+          messagesContainer.appendChild(messageElement);
+        });
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function detectImageUrl(text) {
+        const urlRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|png|svg))/i;
+        const urls = text.match(urlRegex);
+        return urls ? urls[0] : null;
+      }
+
     });
   </script>
 </body>
+
 </html>
