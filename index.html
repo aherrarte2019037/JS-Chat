@@ -10,8 +10,8 @@
     }
 
     .dark {
-      background-color: #333;
-      color: #fff;
+      background-color: #fff;
+      color: #000;
     }
   </style>
 </head>
@@ -24,7 +24,8 @@
       const inputContainer = document.createElement('div');
       const messageInput = document.createElement('input');
       const sendButton = document.createElement('button');
-      const themeToggle = document.createElement('button');
+      const themeToggle = document.createElement('div');
+      const sidebar = document.createElement('div');
 
       setupElements();
 
@@ -35,6 +36,22 @@
         document.body.appendChild(chatContainer);
         document.body.style.margin = '0';
         document.body.style.transition = 'background-color 0.5s, color 0.5s';
+
+        sidebar.style.width = '200px';
+        sidebar.style.height = '100vh';
+        sidebar.style.overflowY = 'auto';
+        sidebar.style.backgroundColor = '#f0f0f0';
+        sidebar.style.padding = '20px';
+        sidebar.style.boxSizing = 'border-box';
+
+        const sidebarTitle = document.createElement('h3');
+        sidebarTitle.textContent = 'Participantes';
+        sidebarTitle.style.marginTop = '0';
+        sidebar.appendChild(sidebarTitle);
+
+        document.body.style.display = 'flex';
+        document.body.appendChild(sidebar);
+        document.body.appendChild(chatContainer);
 
         messagesContainer.style.flex = '1';
         messagesContainer.style.overflowY = 'auto';
@@ -51,7 +68,6 @@
         sendButton.textContent = 'Enviar';
         inputContainer.appendChild(sendButton);
 
-        themeToggle.textContent = 'Cambiar tema';
         chatContainer.insertBefore(themeToggle, messagesContainer);
 
         chatContainer.style.display = 'flex';
@@ -63,6 +79,12 @@
         chatContainer.style.backgroundColor = '#ffffff';
         chatContainer.style.borderRadius = '8px';
         chatContainer.style.overflow = 'hidden';
+
+        chatContainer.style.flexGrow = '1';
+        chatContainer.style.display = 'flex';
+        chatContainer.style.flexDirection = 'column';
+        chatContainer.style.height = '100vh';
+        chatContainer.style.maxWidth = 'calc(100% - 200px)';
 
         messagesContainer.style.flex = '1';
         messagesContainer.style.overflowY = 'auto';
@@ -84,15 +106,6 @@
         sendButton.style.color = 'white';
         sendButton.style.cursor = 'pointer';
 
-        themeToggle.style.padding = '10px';
-        themeToggle.style.borderRadius = '18px';
-        themeToggle.style.border = '1px solid #007bff';
-        themeToggle.style.backgroundColor = 'transparent';
-        themeToggle.style.color = '#007bff';
-        themeToggle.style.cursor = 'pointer';
-        themeToggle.style.alignSelf = 'flex-start';
-        themeToggle.style.margin = '10px';
-
         sendButton.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', event => {
           if (event.key === 'Enter') {
@@ -100,12 +113,24 @@
             event.preventDefault();
           }
         });
-        themeToggle.addEventListener('click', toggleTheme);
 
         applyStoredTheme();
         loadMessages();
 
         setInterval(loadMessages, 5000);
+      }
+
+      function updateParticipants(participants) {
+        while (sidebar.childNodes.length > 1) {
+          sidebar.removeChild(sidebar.lastChild);
+        }
+
+        participants.forEach(participant => {
+          const participantElement = document.createElement('div');
+          participantElement.textContent = participant;
+          participantElement.style.padding = '5px 0';
+          sidebar.appendChild(participantElement);
+        });
       }
 
       function sendMessage() {
@@ -145,13 +170,6 @@
         }
       }
 
-      function toggleTheme() {
-        const currentTheme = document.body.className;
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        document.body.className = newTheme;
-        localStorage.setItem('theme', newTheme);
-      }
-
       function applyStoredTheme() {
         const storedTheme = localStorage.getItem('theme') || 'light';
         document.body.className = storedTheme;
@@ -159,19 +177,21 @@
 
       function loadMessages() {
         fetch('http://uwu-guate.site:3000/messages')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
+          .then(response => response.json())
           .then(data => {
             displayMessages(data.reverse());
-            if (messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight) {
-              messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
+            const participants = extractParticipants(data);
+            updateParticipants(participants);
           })
-          .catch(error => console.error('There was a problem with your fetch operation:', error));
+          .catch(error => console.error('Error loading messages:', error));
+      }
+
+      function extractParticipants(messages) {
+        const participants = new Set();
+        messages.forEach(message => {
+          participants.add(message[1]);
+        });
+        return Array.from(participants);
       }
 
       function displayMessages(messages) {
