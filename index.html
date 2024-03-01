@@ -10,8 +10,8 @@
     }
 
     .dark {
-      background-color: #fff;
-      color: #000;
+      background-color: #000;
+      color: #fff;
     }
   </style>
 </head>
@@ -189,16 +189,20 @@
       function extractParticipants(messages) {
         const participants = new Set();
         messages.forEach(message => {
-          participants.add(message[1]);
+          participants.add(message.username);
         });
         return Array.from(participants);
       }
 
       function displayMessages(messages) {
+        while (messagesContainer.firstChild) {
+          messagesContainer.removeChild(messagesContainer.firstChild);
+        }
+
         messages.forEach(msg => {
           const messageElement = document.createElement('div');
           const authorName = document.createElement('span');
-          const messageDate = document.createElement('span');
+          const messageDate = document.createElement('span'); // Opcional si quieres agregar fecha
           const messageContent = document.createElement('div');
 
           messageElement.style.padding = '10px 20px';
@@ -209,9 +213,9 @@
           messageElement.style.display = 'flex';
           messageElement.style.flexDirection = 'column';
 
-          const imageUrl = detectImageUrl(msg[2]);
+          const imageUrl = detectImageUrl(msg.content);
           let messageText = document.createElement('span');
-          messageText.textContent = msg[2];
+          messageText.textContent = msg.content;
 
           if (imageUrl) {
             const imageElement = document.createElement('img');
@@ -227,20 +231,20 @@
             messageContent.appendChild(messageText);
           }
 
-          authorName.textContent = msg[1];
+          authorName.textContent = msg.username;
           authorName.style.display = 'block';
           authorName.style.fontSize = '0.8em';
           authorName.style.marginTop = '5px';
           authorName.style.opacity = '0.6';
 
-          messageDate.textContent = new Date(msg[3]).toLocaleString();
+          // messageDate.textContent = new Date(msg.timestamp).toLocaleString(); // Añadir si hay timestamp
           messageDate.style.display = 'block';
           messageDate.style.fontSize = '0.7em';
           messageDate.style.marginTop = '5px';
           messageDate.style.opacity = '0.5';
           messageDate.style.textAlign = 'right';
 
-          if (msg[1] === 'Angel Herrarte') {
+          if (msg.username === 'Angel Herrarte') {
             messageElement.style.backgroundColor = '#007bff';
             messageElement.style.color = 'white';
             messageElement.style.alignSelf = 'flex-end';
